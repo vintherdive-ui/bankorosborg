@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banko på Borgen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-medium: #151b3d;
+            --bg-light: #1f2749;
+            --accent-gold: #ffd700;
+            --accent-orange: #ff6b35;
+            --accent-green: #00ff88;
+            --text-primary: #ffffff;
+            --text-muted: #8892b3;
+            --grid-size: 85px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 72px;
+            letter-spacing: 8px;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+        }
+
+        .game-mode-display {
+            margin-top: 15px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-green);
+            letter-spacing: 2px;
+        }
+
+        .admin-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .admin-btn {
+            background: linear-gradient(135deg, var(--accent-orange) 0%, #d94d1f 100%);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(255, 107, 53, 0.5);
+        }
+
+        .banko-button-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        .banko-btn {
+            background: linear-gradient(135deg, var(--accent-green) 0%, #00cc6a 100%);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 30px;
+            color: var(--bg-dark);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+            transition: all 0.3s ease;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 30px rgba(0, 255, 136, 0.7);
+            }
+        }
+
+        .banko-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 40px rgba(0, 255, 136, 0.6);
+        }
+
+        .admin-panel {
+            background: var(--bg-light);
+            border: 2px solid var(--accent-orange);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .admin-panel.active ~ .container .banko-button-container {
+            display: none;
+        }
+
+        body:has(.admin-panel.active) .banko-button-container {
+            display: none;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .game-mode-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .game-mode-selector label {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .game-mode-selector select {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--bg-medium);
+            background: var(--bg-dark);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .game-mode-selector select:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff4757 0%, #c23040 100%);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 71, 87, 0.5);
+        }
+
+        .password-input {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--bg-medium);
+            background: var(--bg-dark);
+            color: white;
+            font-size: 14px;
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+        }
+
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--grid-size), 1fr));
+            gap: 12px;
+            margin-bottom: 50px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .number-ball {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
+            border: 3px solid var(--bg-light);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .number-ball::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .number-ball:hover::before {
+            opacity: 1;
+        }
+
+        .number-ball:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .number-ball.called {
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-orange) 100%);
+            border-color: var(--accent-gold);
+            color: var(--bg-dark);
+            transform: scale(1.05);
+            animation: pulse 0.6s ease-out;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1.05);
+            }
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        .number-ball.admin-mode:hover {
+            transform: scale(1.15);
+        }
+
+        .history-section {
+            background: var(--bg-light);
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+            margin-bottom: 40px;
+        }
+
+        .history-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            color: var(--accent-gold);
+        }
+
+        .day-entry {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--bg-medium);
+            border-radius: 15px;
+            border-left: 4px solid var(--accent-orange);
+            transition: all 0.3s ease;
+        }
+
+        .day-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .day-label {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+        }
+
+        .day-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .history-number {
+            background: var(--bg-dark);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+            border: 1px solid var(--bg-light);
+            transition: all 0.2s ease;
+        }
+
+        .history-number:hover {
+            background: var(--bg-light);
+            border-color: var(--accent-gold);
+        }
+
+        .winners-section {
+            background: var(--bg-light);
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+
+        .winner-entry {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--bg-medium);
+            border-radius: 15px;
+            border-left: 4px solid var(--accent-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .winner-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .winner-name {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--accent-green);
+            letter-spacing: 1px;
+        }
+
+        .winner-time {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .winner-game-mode {
+            background: var(--bg-dark);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent-gold);
+        }
+
+        .like-button {
+            background: transparent;
+            border: 2px solid var(--bg-dark);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+        }
+
+        .like-button:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-gold);
+        }
+
+        .like-button.liked {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
+        .like-count {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-left: 5px;
+            font-weight: 600;
+        }
+
+        .no-history {
+            color: var(--text-muted);
+            font-style: italic;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-light);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid var(--accent-green);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .modal-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            color: var(--accent-green);
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--bg-medium);
+            background: var(--bg-dark);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.2);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, var(--accent-green) 0%, #00cc6a 100%);
+            color: var(--bg-dark);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .modal-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 255, 136, 0.5);
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-medium);
+            color: white;
+        }
+
+        .modal-btn-cancel:hover {
+            background: var(--bg-dark);
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --grid-size: 60px;
+            }
+
+            h1 {
+                font-size: 48px;
+                letter-spacing: 4px;
+            }
+
+            .number-ball {
+                font-size: 24px;
+            }
+
+            .history-section, .winners-section {
+                padding: 20px;
+            }
+
+            .admin-toggle, .banko-button-container {
+                position: static;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .banko-button-container {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="banko-button-container">
+        <button class="banko-btn" onclick="showBankoModal()">🎉 BANKO!</button>
+    </div>
+
+    <div class="admin-toggle">
+        <button class="admin-btn" onclick="toggleAdmin()">Admin</button>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>BANKO PÅ BORGEN</h1>
+            <div class="game-mode-display" id="gameModeDisplay">Hele pladen</div>
+        </header>
+
+        <div id="adminPanel" class="admin-panel">
+            <h3 style="margin-bottom: 15px; letter-spacing: 2px;">ADMINISTRATOR PANEL</h3>
+            
+            <div id="loginSection">
+                <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px;">
+                    <input type="password" id="adminPassword" class="password-input" placeholder="Adgangskode">
+                    <button class="admin-btn" style="position: static;" onclick="loginAdmin()">Log ind</button>
+                </div>
+            </div>
+
+            <div id="loggedInSection" style="display: none;">
+                <div style="background: var(--bg-dark); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px solid var(--accent-green);">
+                    <p style="color: var(--accent-green); font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 10px;">
+                        ✓ Du er logget ind som administrator
+                    </p>
+                </div>
+            
+            <div class="game-mode-selector">
+                <label for="gameModeSelect">Spil type:</label>
+                <select id="gameModeSelect" onchange="updateGameMode()">
+                    <option value="En række">En række</option>
+                    <option value="To rækker">To rækker</option>
+                    <option value="Hele pladen" selected>Hele pladen</option>
+                </select>
+            </div>
+
+            <div class="admin-controls">
+                <button class="reset-btn" onclick="saveToHistory()">Træk Numre</button>
+                <button class="reset-btn" onclick="clearAll()">Slet Historik</button>
+            </div>
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 14px;">Klik på tal for at markere dem som trukket. Brugere skal refreshe for at se opdateringer.</p>
+            </div>
+        </div>
+
+        <div id="numberGrid" class="number-grid"></div>
+
+        <div class="history-section">
+            <h2 class="history-title">TAL HISTORIK</h2>
+            <div id="history"></div>
+        </div>
+
+        <div class="winners-section">
+            <h2 class="history-title">BANKO VINDERE</h2>
+            <div id="winnersHistory"></div>
+        </div>
+    </div>
+
+    <!-- Banko Modal -->
+    <div id="bankoModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">BANKO!</h2>
+            <p style="margin-bottom: 20px; color: var(--text-muted);">Tillykke! Indtast dit navn:</p>
+            <input type="text" id="winnerNameInput" class="modal-input" placeholder="Dit navn">
+            <p style="margin-bottom: 20px; color: var(--accent-green); font-weight: 600; text-align: center;">📞 Kontakt Betty på kontoret for at få din præmie.<br>Husk din bankoplade.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeBankoModal()">Annuller</button>
+                <button class="modal-btn modal-btn-confirm" onclick="submitBanko()">Bekræft</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = 'banko123';
+        
+        let isAdminMode = false;
+        let calledNumbers = new Set();
+        let allTimeCalledNumbers = new Set();
+        let history = [];
+        let bankoWinners = [];
+        let gameMode = 'Hele pladen';
+
+        // Synkronisering: Data gemmes i localStorage og deles mellem alle der åbner siden
+        function loadData() {
+            const savedCalled = localStorage.getItem('bankoCalledNumbers');
+            const savedAllTime = localStorage.getItem('bankoAllTimeCalledNumbers');
+            const savedHistory = localStorage.getItem('bankoHistory');
+            const savedWinners = localStorage.getItem('bankoWinners');
+            const savedGameMode = localStorage.getItem('bankoGameMode');
+            
+            if (savedCalled) calledNumbers = new Set(JSON.parse(savedCalled));
+            if (savedAllTime) allTimeCalledNumbers = new Set(JSON.parse(savedAllTime));
+            if (savedHistory) history = JSON.parse(savedHistory);
+            if (savedWinners) bankoWinners = JSON.parse(savedWinners);
+            if (savedGameMode) gameMode = savedGameMode;
+
+            document.getElementById('gameModeSelect').value = gameMode;
+            document.getElementById('gameModeDisplay').textContent = gameMode;
+        }
+
+        function saveData() {
+            localStorage.setItem('bankoCalledNumbers', JSON.stringify([...calledNumbers]));
+            localStorage.setItem('bankoAllTimeCalledNumbers', JSON.stringify([...allTimeCalledNumbers]));
+            localStorage.setItem('bankoHistory', JSON.stringify(history));
+            localStorage.setItem('bankoWinners', JSON.stringify(bankoWinners));
+            localStorage.setItem('bankoGameMode', gameMode);
+            localStorage.setItem('bankoLastUpdate', Date.now().toString());
+        }
+
+        function initGrid() {
+            const grid = document.getElementById('numberGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i <= 90; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'number-ball';
+                ball.textContent = i;
+                ball.dataset.number = i;
+                
+                if (allTimeCalledNumbers.has(i)) {
+                    ball.classList.add('called');
+                }
+                
+                ball.addEventListener('click', () => toggleNumber(i));
+                grid.appendChild(ball);
+            }
+        }
+
+        function toggleAdmin() {
+            const panel = document.getElementById('adminPanel');
+            const passwordInput = document.getElementById('adminPassword');
+            
+            if (!isAdminMode) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+                isAdminMode = false;
+                passwordInput.value = '';
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('loggedInSection').style.display = 'none';
+                updateGridMode();
+            }
+        }
+
+        function loginAdmin() {
+            if (checkAdminPassword()) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('loggedInSection').style.display = 'block';
+            }
+        }
+
+        function checkAdminPassword() {
+            const passwordInput = document.getElementById('adminPassword');
+            if (passwordInput.value === ADMIN_PASSWORD) {
+                isAdminMode = true;
+                updateGridMode();
+                return true;
+            }
+            alert('Forkert adgangskode!');
+            return false;
+        }
+
+        function updateGridMode() {
+            const balls = document.querySelectorAll('.number-ball');
+            balls.forEach(ball => {
+                if (isAdminMode) {
+                    ball.classList.add('admin-mode');
+                } else {
+                    ball.classList.remove('admin-mode');
+                }
+            });
+        }
+
+        function toggleNumber(num) {
+            if (!isAdminMode) return;
+            
+            const ball = document.querySelector(`[data-number="${num}"]`);
+            
+            if (calledNumbers.has(num)) {
+                calledNumbers.delete(num);
+                allTimeCalledNumbers.delete(num);
+                ball.classList.remove('called');
+            } else {
+                calledNumbers.add(num);
+                allTimeCalledNumbers.add(num);
+                ball.classList.add('called');
+            }
+            
+            saveData();
+        }
+
+        function updateGameMode() {
+            if (!isAdminMode) {
+                if (!checkAdminPassword()) {
+                    document.getElementById('gameModeSelect').value = gameMode;
+                    return;
+                }
+            }
+
+            gameMode = document.getElementById('gameModeSelect').value;
+            document.getElementById('gameModeDisplay').textContent = gameMode;
+            saveData();
+        }
+
+        function showBankoModal() {
+            document.getElementById('bankoModal').classList.add('active');
+            document.getElementById('winnerNameInput').value = '';
+            document.getElementById('winnerNameInput').focus();
+        }
+
+        function closeBankoModal() {
+            document.getElementById('bankoModal').classList.remove('active');
+        }
+
+        function submitBanko() {
+            const nameInput = document.getElementById('winnerNameInput');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert('Indtast venligst dit navn!');
+                return;
+            }
+
+            const now = new Date();
+            const winner = {
+                name: name,
+                timestamp: now.toISOString(),
+                gameMode: gameMode,
+                likes: 0,
+                likedBy: []
+            };
+
+            bankoWinners.unshift(winner);
+            saveData();
+            updateWinnersHistory();
+            closeBankoModal();
+
+            alert(`🎉 Tillykke ${name}! Din banko er registreret!`);
+        }
+
+        function toggleLike(index) {
+            const winner = bankoWinners[index];
+            const userId = getUserId();
+            
+            if (winner.likedBy.includes(userId)) {
+                winner.likedBy = winner.likedBy.filter(id => id !== userId);
+                winner.likes--;
+            } else {
+                winner.likedBy.push(userId);
+                winner.likes++;
+            }
+            
+            saveData();
+            updateWinnersHistory();
+        }
+
+        function getUserId() {
+            let userId = localStorage.getItem('bankoUserId');
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('bankoUserId', userId);
+            }
+            return userId;
+        }
+
+        function updateWinnersHistory() {
+            const winnersDiv = document.getElementById('winnersHistory');
+
+            if (bankoWinners.length === 0) {
+                winnersDiv.innerHTML = '<p class="no-history">Ingen vindere endnu</p>';
+                return;
+            }
+
+            const userId = getUserId();
+
+            winnersDiv.innerHTML = bankoWinners.map((winner, index) => {
+                const date = new Date(winner.timestamp);
+                const dateStr = date.toLocaleDateString('da-DK', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                const timeStr = date.toLocaleTimeString('da-DK', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                if (!winner.likes) winner.likes = 0;
+                if (!winner.likedBy) winner.likedBy = [];
+
+                const isLiked = winner.likedBy.includes(userId);
+                const likeClass = isLiked ? 'liked' : '';
+
+                return `
+                    <div class="winner-entry">
+                        <div>
+                            <div class="winner-name">🏆 ${winner.name}</div>
+                            <div class="winner-time">${dateStr} kl. ${timeStr}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="winner-game-mode">${winner.gameMode}</div>
+                            <button class="like-button ${likeClass}" onclick="toggleLike(${index})" title="${isLiked ? 'Fjern like' : 'Like'}">
+                                ${isLiked ? '👍' : '👍'}
+                                <span class="like-count">${winner.likes}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function saveToHistory() {
+            if (!isAdminMode) {
+                if (!checkAdminPassword()) return;
+            }
+            
+            if (calledNumbers.size === 0) {
+                alert('Der er ingen tal at gemme!');
+                return;
+            }
+            
+            if (!confirm('Er du sikker på at du vil gemme de trukne tal i historikken?')) {
+                return;
+            }
+            
+            const today = new Date();
+            const timestamp = today.toISOString();
+            history.unshift({
+                date: timestamp,
+                numbers: [...calledNumbers].sort((a, b) => a - b)
+            });
+            
+            if (history.length > 30) {
+                history = history.slice(0, 30);
+            }
+            
+            calledNumbers.clear();
+            saveData();
+            updateHistory();
+            
+            alert('Tallene er gemt i historikken!');
+        }
+
+        function clearAll() {
+            if (!isAdminMode) {
+                if (!checkAdminPassword()) return;
+            }
+            
+            if (!confirm('Er du sikker på at du vil slette ALLE tal, historik og vindere?')) {
+                return;
+            }
+            
+            calledNumbers.clear();
+            allTimeCalledNumbers.clear();
+            history = [];
+            bankoWinners = [];
+            saveData();
+            initGrid();
+            updateHistory();
+            updateWinnersHistory();
+        }
+
+        function updateHistory() {
+            const historyDiv = document.getElementById('history');
+            
+            if (history.length === 0) {
+                historyDiv.innerHTML = '<p class="no-history">Ingen historik endnu</p>';
+                return;
+            }
+            
+            historyDiv.innerHTML = history.map((entry, index) => {
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString('da-DK', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                const timeStr = date.toLocaleTimeString('da-DK', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                return `
+                    <div class="day-entry">
+                        <div class="day-label">${dateStr} kl. ${timeStr}</div>
+                        <div class="day-numbers">
+                            ${entry.numbers.map(num => `<span class="history-number">${num}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginAdmin();
+            }
+        });
+
+        document.getElementById('winnerNameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitBanko();
+            }
+        });
+
+        // Initialize
+        loadData();
+        initGrid();
+        updateHistory();
+        updateWinnersHistory();
+    </script>
+</body>
+</html>
